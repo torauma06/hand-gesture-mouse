@@ -132,7 +132,8 @@ def main():
 
     # set mode #
     mode = 0
-    clickdown = False
+    click = False
+    clicking = False
         
     startTime = time.time()
     currentTime = int(startTime) 
@@ -181,27 +182,39 @@ def main():
 
                 # classify hand sign #
                 hand_sign_id = keypoint_classifier(pre_processed_landmark_list)
-                if hand_sign_id == 2:  # hand is pointer #
-                    if clickdown == True:
+                print(hand_sign_id)
+                if hand_sign_id == 1:
+                    if click == False:
+                        win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN,0,0)
                         win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP,0,0)
-                        clickdown = False
+                        click = True
+                elif hand_sign_id == 2:  # hand is pointer #
+                    click = False
+                    if clicking == True:
+                        win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP,0,0)
+                        clicking = False
                     win32api.SetCursorPos([int(landmark_list[8][0] * widthRatio), int(landmark_list[8][1] * heightRatio)])
                     point_history.append(landmark_list[8])  
                 elif hand_sign_id == 3: # hand is pick #
-                    if clickdown == False:
+                    click = False
+                    if clicking == False:
                         win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN,0,0)
-                        clickdown = True
+                        clickedTime = currentTime
+                        clicking = True
+                    print(str(nowTime) + "  " + str(clickedTime) )
                     win32api.SetCursorPos([int(landmark_list[8][0] * widthRatio), int(landmark_list[8][1] * heightRatio)])
                     point_history.append(landmark_list[8])
                 else:
-                    if clickdown == True:
+                    click = False
+                    if clicking == True:
                         win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP,0,0)
-                        clickdown = False
+                        clicking = False
                     point_history.append([0, 0])
 
                 # draw on image #
                 debug_image = draw_bounding_rect(use_brect, debug_image, brect)
                 debug_image = draw_landmarks(debug_image, landmark_list)
+                
                 debug_image = draw_info_text(
                     debug_image,
                     brect,
